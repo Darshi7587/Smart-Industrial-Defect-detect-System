@@ -1,0 +1,18 @@
+# YOLO dataset configuration for defect detection
+
+# Dataset paths
+path: ../data
+train: train/images
+val: val/images
+test: test/images
+
+# Number of classes
+nc: 5
+
+# Class names
+names:
+  0: scratch
+  1: crack
+  2: dent
+  3: missing_component
+  4: contamination

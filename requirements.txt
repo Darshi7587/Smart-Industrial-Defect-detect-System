@@ -1,0 +1,86 @@
+# Core Deep Learning
+torch==2.1.2
+torchvision==0.16.2
+torchaudio==2.1.2
+
+# YOLOv8
+ultralytics==8.0.220
+
+# EfficientNet and pre-trained models
+timm==0.9.8
+efficientnet_pytorch==0.7.1
+
+# Data Processing
+numpy==1.24.3
+opencv-python==4.8.1.78
+opencv-contrib-python==4.8.1.78
+Pillow==10.0.1
+
+# Data Augmentation
+albumentations==1.3.1
+imgaug==0.4.0
+
+# ML Framework
+scikit-learn==1.3.2
+scipy==1.11.4
+
+# Database
+psycopg2-binary==2.9.9
+sqlalchemy==2.0.23
+
+# API & Serving
+fastapi==0.104.1
+uvicorn==0.24.0
+pydantic==2.5.0
+
+# Monitoring & Logging
+streamlit==1.28.1
+plotly==5.17.0
+pandas==2.1.3
+tensorboard==2.14.1
+
+# Hyperparameter Optimization
+optuna==3.14.0
+
+# Deployment & Optimization
+onnx==1.14.1
+onnxruntime==1.16.3
+onnxruntime-gpu==1.16.3
+
+# YAML Config
+PyYAML==6.0.1
+
+# Utilities
+python-dotenv==1.0.0
+tqdm==4.66.1
+pyyaml==6.0.1
+click==8.1.7
+
+# Development
+pytest==7.4.3
+pytest-cov==4.1.0
+black==23.11.0
+flake8==6.1.0
+pylint==3.0.3
+
+# Testing
+pytest-asyncio==0.21.1
+requests==2.31.0
+
+# Modbus (PLC Integration)
+pymodbus==3.5.0
+minimalmodbus==2.0.1
+
+# Image Quality Metrics
+scikit-image==0.21.0
+imutils==0.5.4
+
+# Data Visualization
+matplotlib==3.8.2
+seaborn==0.13.0
+
+# Version control & reproducibility
+wandb==0.16.0
+
+# Parallelization
+joblib==1.3.2

@@ -1,0 +1,20 @@
+# NEU Steel Surface Defect Dataset
+# 6 defect classes from real industrial scenario
+
+path: C:/Users/darsh/Downloads/DL/smart-defect-detection/data/neu_steel_defects
+train: train/images
+val: val/images
+test: test/images
+
+nc: 6
+names:
+  0: crazing
+  1: inclusion
+  2: patches
+  3: pitted
+  4: rolled
+  5: scratches
+
+# Dataset info
+# Based on NEU Surface Defect Database structure
+# Contains 6 types of surface defects on hot-rolled steel strips

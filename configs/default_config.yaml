@@ -1,0 +1,58 @@
+# Default configuration for Smart Industrial Defect Detection
+
+model:
+  detection_model: yolov8n
+  detection_weights: null
+  detection_threshold: 0.5
+  detection_iou_threshold: 0.45
+  classification_model: efficientnet_b4
+  classification_weights: null
+  classification_threshold: 0.85
+  num_classes: 5
+  anomaly_model: autoencoder
+  anomaly_weights: null
+  anomaly_threshold: 2.0
+  latent_dim: 128
+
+training:
+  epochs: 100
+  batch_size: 16
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  optimizer: AdamW
+  scheduler: cosine
+  warmup_epochs: 3
+  early_stopping_patience: 50
+  mixed_precision: true
+  gradient_clipping: 1.0
+
+data:
+  train_dir: data/train
+  val_dir: data/val
+  test_dir: data/test
+  image_size: 640
+  num_workers: 4
+  augmentation_strength: medium
+  class_names:
+    - scratch
+    - crack
+    - dent
+    - missing_component
+    - contamination
+
+inference:
+  device: cuda:0
+  batch_size: 1
+  image_size: 640
+  target_latency_ms: 50.0
+  use_tensorrt: false
+  use_quantization: false
+
+factory:
+  plc_ip: 192.168.1.50
+  plc_port: 502
+  plc_simulate: true
+  conveyor_speed: 1.0
+  reject_delay_ms: 50
+  database_type: sqlite
+  database_path: data/defect_detection.db

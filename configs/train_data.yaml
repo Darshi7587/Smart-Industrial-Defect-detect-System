@@ -1,0 +1,10 @@
+names:
+- scratch
+- crack
+- dent
+- contamination
+nc: 4
+path: C:\Users\darsh\Downloads\DL\smart-defect-detection\data
+test: test/images
+train: train/images
+val: val/images

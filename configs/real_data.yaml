@@ -1,0 +1,8 @@
+# Industrial Defect Detection Dataset
+path: C:\Users\darsh\Downloads\DL\smart-defect-detection\data\industrial_defects
+train: train/images
+val: val/images
+test: test/images
+
+nc: 1
+names: ['defect']
