@@ -14,6 +14,9 @@ import json
 from pathlib import Path
 import sys
 import sqlite3
+from PIL import Image
+import cv2
+from ultralytics import YOLO
 
 # Add parent directory to path
 sys.path.append(str(Path(__file__).parent.parent))
@@ -43,6 +46,43 @@ def load_data_from_db():
         st.error(f"Database error: {e}")
     
     return None
+
+
+def detect_defects_on_image(image, model_path):
+    """Run defect detection on uploaded image."""
+    try:
+        # Load model
+        if not Path(model_path).exists():
+            st.warning("Model not found. Using demo mode.")
+            return None, "No model available"
+        
+        model = YOLO(model_path)
+        
+        # Convert PIL to OpenCV format
+        img_array = np.array(image)
+        img_bgr = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
+        
+        # Run inference
+        results = model(img_bgr, conf=0.25)
+        
+        # Get annotated image
+        annotated_img = results[0].plot()
+        annotated_img = cv2.cvtColor(annotated_img, cv2.COLOR_BGR2RGB)
+        
+        # Extract detection info
+        detections = []
+        for box in results[0].boxes:
+            detections.append({
+                'class': results[0].names[int(box.cls[0])],
+                'confidence': float(box.conf[0]),
+                'bbox': box.xyxy[0].tolist()
+            })
+        
+        return annotated_img, detections
+    
+    except Exception as e:
+        st.error(f"Detection error: {e}")
+        return None, str(e)
 
 
 def create_dashboard():
@@ -80,6 +120,17 @@ def create_dashboard():
     
     # Sidebar
     st.sidebar.title("⚙️ Settings")
+    
+    # Navigation
+    page = st.sidebar.radio(
+        "Navigation",
+        ["📊 Dashboard", "🔍 Upload & Detect"],
+        index=0
+    )
+    
+    if page == "🔍 Upload & Detect":
+        show_upload_page()
+        return
     
     # Line selection
     line_id = st.sidebar.selectbox(
@@ -407,6 +458,150 @@ def create_dashboard():
     if auto_refresh:
         time.sleep(5)
         st.rerun()
+
+
+def show_upload_page():
+    """Page for uploading and detecting defects on custom images."""
+    st.title("🔍 Upload & Detect Defects")
+    st.markdown("Upload an image to detect defects using the trained AI model")
+    
+    # Model selection
+    st.sidebar.subheader("Model Settings")
+    
+    # Find available models
+    model_paths = [
+        Path("runs/mvtec_fast/weights/best.pt"),
+        Path("runs/mvtec_detection/weights/best.pt"),
+        Path("runs/defect_detection/weights/best.pt"),
+        Path("yolov8n.pt")
+    ]
+    
+    available_models = []
+    for p in model_paths:
+        if p.exists():
+            available_models.append(str(p))
+    
+    if not available_models:
+        available_models = ["yolov8n.pt"]
+    
+    selected_model = st.sidebar.selectbox(
+        "Select Model",
+        options=available_models,
+        index=0
+    )
+    
+    confidence_threshold = st.sidebar.slider(
+        "Confidence Threshold",
+        min_value=0.1,
+        max_value=1.0,
+        value=0.25,
+        step=0.05
+    )
+    
+    # Upload section
+    st.markdown("---")
+    col1, col2 = st.columns([1, 1])
+    
+    with col1:
+        st.subheader("📤 Upload Image")
+        uploaded_file = st.file_uploader(
+            "Choose an image...",
+            type=["jpg", "jpeg", "png", "bmp"],
+            help="Upload an image of a product to detect defects"
+        )
+        
+        if uploaded_file is not None:
+            # Display original image
+            image = Image.open(uploaded_file)
+            st.image(image, caption="Uploaded Image", use_container_width=True)
+            
+            # Image info
+            st.caption(f"Size: {image.size[0]}x{image.size[1]} | Format: {image.format}")
+    
+    with col2:
+        st.subheader("🎯 Detection Results")
+        
+        if uploaded_file is not None:
+            if st.button("🚀 Run Detection", type="primary", use_container_width=True):
+                with st.spinner("Analyzing image..."):
+                    # Run detection
+                    annotated_img, detections = detect_defects_on_image(image, selected_model)
+                    
+                    if annotated_img is not None:
+                        # Display annotated image
+                        st.image(annotated_img, caption="Detected Defects", use_container_width=True)
+                        
+                        # Show detection details
+                        if isinstance(detections, list) and len(detections) > 0:
+                            st.success(f"✅ Found {len(detections)} defect(s)")
+                            
+                            # Create detection table
+                            df_detections = pd.DataFrame(detections)
+                            st.dataframe(
+                                df_detections[['class', 'confidence']].style.format({
+                                    'confidence': '{:.2%}'
+                                }),
+                                use_container_width=True
+                            )
+                            
+                            # Verdict
+                            st.markdown("---")
+                            max_conf = max([d['confidence'] for d in detections])
+                            if max_conf > 0.5:
+                                st.error("❌ **REJECT**: Defects detected with high confidence")
+                            else:
+                                st.warning("⚠️ **ALERT**: Potential defects detected, manual inspection recommended")
+                        
+                        else:
+                            st.success("✅ **ACCEPT**: No defects detected")
+                            st.balloons()
+                    else:
+                        st.error(f"Detection failed: {detections}")
+        else:
+            st.info("👆 Upload an image to start detection")
+    
+    # Examples section
+    st.markdown("---")
+    st.subheader("💡 Example Use Cases")
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown("""
+        **Manufacturing QC**
+        - Surface scratches
+        - Dents and deformations
+        - Paint defects
+        """)
+    
+    with col2:
+        st.markdown("""
+        **Textile Inspection**
+        - Fabric tears
+        - Color inconsistencies
+        - Thread defects
+        """)
+    
+    with col3:
+        st.markdown("""
+        **Electronics**
+        - PCB defects
+        - Component misalignment
+        - Solder issues
+        """)
+    
+    # Instructions
+    st.markdown("---")
+    with st.expander("📖 How to Use"):
+        st.markdown("""
+        1. **Select a model** from the sidebar (trained models or base YOLOv8)
+        2. **Adjust confidence threshold** if needed (default: 0.25)
+        3. **Upload an image** of the product you want to inspect
+        4. **Click "Run Detection"** to analyze the image
+        5. **Review results**: Annotated image shows detected defects with bounding boxes
+        6. **Check verdict**: System provides Accept/Reject/Alert recommendation
+        
+        **Supported formats**: JPG, JPEG, PNG, BMP
+        """)
 
 
 if __name__ == "__main__":
